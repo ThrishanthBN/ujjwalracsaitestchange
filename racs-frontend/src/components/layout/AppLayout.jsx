@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ROLES } from '../../data/mockData';
 import { Navbar } from './Navbar';
 import { Sidebar } from './Sidebar';
 import { ProtectedRoute } from '../common/ProtectedRoute';
+import { AntigravityCanvas } from '../common/AntigravityCanvas';
 
 // View Imports
 import { AdminDashboard } from '../admin/AdminDashboard';
@@ -58,12 +60,30 @@ export function AppLayout() {
     setSelectedCandidateId(candidateId);
   };
 
+  const { isDark } = useTheme();
+
   return (
-    <div className="min-h-screen bg-[#080B11] text-slate-100 flex flex-col font-sans selection:bg-indigo-500 selection:text-white bg-grid-pattern">
+    <div className={`min-h-screen flex flex-col font-sans relative overflow-hidden transition-colors ${
+      isDark
+        ? 'bg-[#0A0D14] text-slate-100 selection:bg-blue-600 selection:text-white bg-grid-pattern'
+        : 'bg-[#F8FAFC] text-slate-900 selection:bg-sky-400 selection:text-white bg-grid-pattern'
+    }`}>
+      {/* Subtle Antigravity Background (Low-density, non-distracting) */}
+      <div className={`fixed inset-0 pointer-events-none z-0 ${isDark ? 'opacity-20' : 'opacity-40'}`}>
+        <AntigravityCanvas particleCount={28} interactive={true} />
+      </div>
+
+      {/* Atmospheric Ambient Glow */}
+      <div className={`fixed top-0 left-1/2 -translate-x-1/2 w-[900px] h-[400px] blur-3xl pointer-events-none -z-10 ${
+        isDark
+          ? 'bg-gradient-to-b from-blue-600/10 via-indigo-600/05 to-transparent'
+          : 'bg-gradient-to-b from-sky-200/35 via-blue-100/20 to-transparent'
+      }`} />
+
       {/* Top Enterprise Navbar */}
       <Navbar onOpenSearch={() => handleNavigate('ta-pipeline')} />
 
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex overflow-hidden relative z-10">
         {/* Dynamic RBAC Collapsible Sidebar */}
         <Sidebar
           currentTab={currentTab}
@@ -72,8 +92,8 @@ export function AppLayout() {
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
         />
 
-        {/* Main Content Area */}
-        <main className="flex-1 overflow-y-auto px-5 py-8 md:px-8 max-w-7xl mx-auto w-full transition-all duration-300">
+        {/* Main Content Area (Spacious editorial padding from Asana / Avea) */}
+        <main className="flex-1 overflow-y-auto px-6 py-10 md:px-12 max-w-6xl mx-auto w-full transition-all duration-300">
           {/* System Administrator Routes */}
           {currentTab === 'admin-dashboard' && (
             <ProtectedRoute allowedRoles={[ROLES.SYSTEM_ADMIN]} featureName="Admin Console">

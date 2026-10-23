@@ -22,8 +22,135 @@ const AuthContext = createContext(null);
 const STORAGE_KEY = 'racs_auth_session';
 const DATA_STORAGE_KEY = 'racs_workspace_data';
 
+export const DEFAULT_ACTIVE_JOB_POSTINGS = [
+  {
+    job_id: 'REQ-FE-101',
+    id: 'REQ-FE-101',
+    workspace_id: 'c541e22e-4d43-4986-9faf-fa004278238f',
+    job_title: 'Senior React & Product Engineer',
+    title: 'Senior React & Product Engineer',
+    department: 'Frontend & UI Architecture',
+    compensation_min: 175000,
+    compensation_max: 210000,
+    target_headcount: 2,
+    status: 'Active',
+    requestingHiringManager: 'ujjwal (Hiring Lead)',
+    equityBand: '0.15% - 0.35% Equity Pool',
+    activeAiProfile: 'React 18 & Full-Stack Neural Rubric v3.1',
+    rubricWeights: {
+      technicalProficiency: 35,
+      systemArchitecture: 30,
+      frameworkRecency: 20,
+      cultureCollaboration: 15,
+    },
+    slaTargetDays: 3.0,
+    currentSlaDays: 2.1,
+    location: 'San Francisco, CA / Remote',
+    created_at: new Date().toISOString(),
+  },
+  {
+    job_id: 'REQ-CORE-01',
+    id: 'REQ-CORE-01',
+    workspace_id: 'c541e22e-4d43-4986-9faf-fa004278238f',
+    job_title: 'Lead Distributed Systems Architect',
+    title: 'Lead Distributed Systems Architect',
+    department: 'Core Infrastructure',
+    compensation_min: 195000,
+    compensation_max: 240000,
+    target_headcount: 1,
+    status: 'Active',
+    requestingHiringManager: 'ujjwal (Hiring Lead)',
+    equityBand: '0.20% - 0.45% Equity Pool',
+    activeAiProfile: 'High-Concurrency Distributed Systems Rubric v4.0',
+    rubricWeights: {
+      technicalProficiency: 40,
+      systemArchitecture: 35,
+      frameworkRecency: 15,
+      cultureCollaboration: 10,
+    },
+    slaTargetDays: 3.5,
+    currentSlaDays: 2.2,
+    location: 'Remote (US/Global)',
+    created_at: new Date().toISOString(),
+  },
+];
+
+export const DEFAULT_WORKSPACE_CANDIDATES = [
+  {
+    candidate_id: 'CAND-GINA-101',
+    id: 'CAND-GINA-101',
+    job_id: 'REQ-FE-101',
+    targetRequisitionId: 'REQ-FE-101',
+    candidate_name: 'Gina Jones',
+    name: 'Gina Jones',
+    candidate_email: 'g.jones@email.com',
+    roleApplied: 'Senior React & Product Engineer',
+    currentTitle: 'React Developer at Airbnb',
+    location: 'San Francisco, CA',
+    experienceYears: 9,
+    compensationExpectation: '$190,000 - $210,000',
+    resume_file_path: '/enclave/resumes/gina_jones_resume.txt',
+    resumeFileName: 'gina_jones_resume.txt',
+    resumeSize: '1.2 KB',
+    parsed_resume_text: 'GINA JONES\nReact Developer\ng.jones@email.com\nSan Francisco, CA\nWork Experience at Airbnb, Netflix, Adobe...',
+    pipeline_status: 'HM Review',
+    status: 'HM Review',
+    overallMatch: 98,
+    match_score_percent: 98,
+    skillsMatched: ['React Router', 'Redux', 'Apollo Client', 'GraphQL', 'NestJS', 'Enzyme', 'Chakra UI', 'ESLint'],
+    matched_skills: ['React Router', 'Redux', 'Apollo Client', 'GraphQL', 'NestJS', 'Enzyme', 'Chakra UI', 'ESLint'],
+    skillsMissing: [],
+    missing_skills: [],
+    summary: 'Exceptional 98% match for Senior React & Product Engineer. 9+ years experience leading React architectures at Airbnb, Netflix, and Adobe. Demonstrates comprehensive mastery of modern UI stack, Apollo Client GraphQL, and state management.',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    created_at: new Date().toISOString(),
+  },
+  {
+    candidate_id: 'CAND-EVELYN-202',
+    id: 'CAND-EVELYN-202',
+    job_id: 'REQ-CORE-01',
+    targetRequisitionId: 'REQ-CORE-01',
+    candidate_name: 'Dr. Evelyn Vance',
+    name: 'Dr. Evelyn Vance',
+    candidate_email: 'evelyn.vance@mit.alum.edu',
+    roleApplied: 'Lead Distributed Systems Architect',
+    currentTitle: 'Staff Systems Architect',
+    location: 'Boston, MA / Remote',
+    experienceYears: 11,
+    compensationExpectation: '$210,000 - $230,000',
+    resume_file_path: '/enclave/resumes/Dr_Evelyn_Vance_Resume.pdf',
+    resumeFileName: 'Dr_Evelyn_Vance_Resume.pdf',
+    resumeSize: '2.4 MB',
+    parsed_resume_text: 'Extracted OCR dossier for Dr. Evelyn Vance. Distributed systems architect with expertise in Go, Kubernetes, eBPF, and high-throughput streaming.',
+    pipeline_status: 'HM Review',
+    status: 'HM Review',
+    overallMatch: 95,
+    match_score_percent: 95,
+    skillsMatched: ['Golang', 'Kubernetes', 'Distributed Systems', 'eBPF', 'High Concurrency'],
+    matched_skills: ['Golang', 'Kubernetes', 'Distributed Systems', 'eBPF', 'High Concurrency'],
+    skillsMissing: ['Kafka'],
+    missing_skills: ['Kafka'],
+    summary: 'Architected distributed event broker handling 4.2M req/sec at hyperscale. Strong alignment with low-level systems requirements.',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    created_at: new Date().toISOString(),
+  },
+];
+
 const getInitialPersistedData = () => {
   try {
+    // First check if an active session exists to load its workspace data
+    const authRaw = localStorage.getItem(STORAGE_KEY);
+    if (authRaw) {
+      const parsedAuth = JSON.parse(authRaw);
+      const wsId = parsedAuth?.user?.workspace_id || parsedAuth?.user?.workspaceId;
+      if (wsId) {
+        const wsSpecific = localStorage.getItem(`racs_ws_${wsId}`);
+        if (wsSpecific) {
+          const parsed = JSON.parse(wsSpecific);
+          if (parsed && parsed.workspace) return parsed;
+        }
+      }
+    }
     const raw = localStorage.getItem(DATA_STORAGE_KEY);
     if (raw) {
       const parsed = JSON.parse(raw);
@@ -70,6 +197,10 @@ export function AuthProvider({ children }) {
         sequences,
       };
       localStorage.setItem(DATA_STORAGE_KEY, JSON.stringify(payload));
+      const wsId = workspace?.workspace_id || workspace?.workspaceId;
+      if (wsId) {
+        localStorage.setItem(`racs_ws_${wsId}`, JSON.stringify(payload));
+      }
     } catch (e) {
       console.warn('Failed to sync workspace data to localStorage:', e);
     }
@@ -239,8 +370,10 @@ export function AuthProvider({ children }) {
     setWorkspace(newWorkspace);
     setUsers([newAdminUser]);
     setInvitations([]);
-    setJobPostings([]);
-    setCandidates([]);
+    const defaultJobs = DEFAULT_ACTIVE_JOB_POSTINGS.map((j) => ({ ...j, workspace_id: newWorkspaceId }));
+    const defaultCands = DEFAULT_WORKSPACE_CANDIDATES.map((c) => ({ ...c, workspace_id: newWorkspaceId }));
+    setJobPostings(defaultJobs);
+    setCandidates(defaultCands);
     setAiEvaluations({});
     setStatusHistory([]);
     setHrHandoffReports([]);
@@ -433,6 +566,63 @@ export function AuthProvider({ children }) {
                 avatar: ROLE_DEFINITIONS[ROLE_ALIASES[u.role] || u.role]?.avatar,
               })));
             }
+
+            // Fetch jobs for this workspace from backend
+            let loadedJobs = [];
+            try {
+              const jobsRes = await api.getJobsByWorkspace(authData.workspaceId);
+              if (jobsRes.ok && Array.isArray(jobsRes.data) && jobsRes.data.length > 0) {
+                loadedJobs = jobsRes.data.map((j) => ({
+                  job_id: j.jobId,
+                  id: j.jobId,
+                  workspace_id: authData.workspaceId,
+                  job_title: j.jobTitle,
+                  title: j.jobTitle,
+                  department: j.department,
+                  compensation_min: 175000,
+                  compensation_max: 215000,
+                  target_headcount: 2,
+                  status: j.status || 'Active',
+                  requestingHiringManager: `${authData.fullName || 'Hiring Lead'}`,
+                  equityBand: 'Standard Tier 2 Pool',
+                  activeAiProfile: 'Autonomous Neural Rubric v3.2',
+                  slaTargetDays: 3.0,
+                  currentSlaDays: 2.1,
+                  location: 'Hybrid / Remote',
+                  created_at: j.createdAt,
+                }));
+              }
+            } catch (err) {
+              console.warn('Could not fetch jobs for workspace:', err);
+            }
+
+            // Load workspace-specific candidates & data
+            const wsDataKey = `racs_ws_${authData.workspaceId}`;
+            let wsPersisted = null;
+            try {
+              const raw = localStorage.getItem(wsDataKey);
+              if (raw) wsPersisted = JSON.parse(raw);
+            } catch (e) {}
+
+            const finalJobs = loadedJobs.length > 0
+              ? loadedJobs
+              : (wsPersisted?.jobPostings && wsPersisted.jobPostings.length > 0
+                  ? wsPersisted.jobPostings
+                  : DEFAULT_ACTIVE_JOB_POSTINGS.map((j) => ({ ...j, workspace_id: authData.workspaceId })));
+            setJobPostings(finalJobs);
+
+            const finalCandidates = (wsPersisted?.candidates && wsPersisted.candidates.length > 0)
+              ? wsPersisted.candidates
+              : DEFAULT_WORKSPACE_CANDIDATES.map((c) => ({
+                  ...c,
+                  workspace_id: authData.workspaceId,
+                  job_id: finalJobs[0]?.job_id || c.job_id,
+                  targetRequisitionId: finalJobs[0]?.job_id || c.targetRequisitionId,
+                }));
+            setCandidates(finalCandidates);
+
+            if (wsPersisted?.hrHandoffReports) setHrHandoffReports(wsPersisted.hrHandoffReports);
+            if (wsPersisted?.auditLogs) setAuditLogs(wsPersisted.auditLogs);
           } catch (e) {
             console.warn('Could not fetch workspace by id:', e);
           }

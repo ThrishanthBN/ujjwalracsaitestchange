@@ -1,158 +1,139 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ROLE_DEFINITIONS } from '../../data/mockData';
 import {
-  ShieldCheck,
   Search,
-  Bell,
   Cpu,
-  Lock,
-  Building2,
   Command,
   LogOut,
   ChevronDown,
-  UserCheck,
-  Shield,
-  Layers,
-  KeyRound
+  Sun,
+  Moon,
 } from 'lucide-react';
 
 export function Navbar({ onOpenSearch }) {
   const { currentRole, currentUser, workspace, logout } = useAuth();
+  const { isDark, toggleTheme } = useTheme();
   const roleDef = ROLE_DEFINITIONS[currentRole] || ROLE_DEFINITIONS.ROLE_TALENT_ACQUISITION;
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-[#0B0F17]/90 backdrop-blur-xl border-b border-slate-800/80 px-6 flex items-center justify-between transition-all select-none">
-      {/* Left: Brand & Workspace Enclave Badge */}
+    <header className={`sticky top-0 z-30 h-16 backdrop-blur-2xl px-6 lg:px-8 flex items-center justify-between select-none transition-colors border-b ${
+      isDark
+        ? 'bg-[#0A0D14]/85 border-white/[0.07] text-white'
+        : 'bg-white/90 border-sky-100 text-slate-900 shadow-sm'
+    }`}>
+      {/* Left: Brand & Workspace Identity */}
       <div className="flex items-center space-x-4">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-indigo-500 to-cyan-400 flex items-center justify-center text-white shadow-md shadow-indigo-500/25 ring-1 ring-white/10">
-            <Cpu className="w-5 h-5" />
+          <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-sky-400 via-sky-500 to-blue-500 flex items-center justify-center text-white shadow-md shadow-sky-500/20 ring-1 ring-white/20">
+            <Cpu className="w-4 h-4" />
           </div>
-          <div>
-            <div className="flex items-center space-x-1.5">
-              <span className="font-extrabold text-base tracking-tight text-white">RACS</span>
-              <span className="font-semibold text-xs px-1.5 py-0.5 rounded-md bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 font-mono">
-                AI
-              </span>
-            </div>
-            <p className="text-[10px] text-slate-400 font-medium tracking-tight">Enterprise Autonomous Recruitment</p>
+          <div className="flex items-baseline space-x-2">
+            <span className="font-bold text-sm tracking-tight">RACS AI</span>
+            <span className="text-[11px] text-slate-400 font-normal hidden sm:inline">Autonomous Recruiting</span>
           </div>
         </div>
 
-        <div className="hidden lg:flex items-center space-x-2 pl-4 border-l border-slate-800">
-          <div className="flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900/90 border border-slate-800 text-xs text-slate-300">
-            <Building2 className="w-3.5 h-3.5 text-indigo-400" />
-            <span className="font-semibold text-white">{workspace.company_name || workspace.companyName || workspace.name}</span>
-          </div>
-
-          <div className="flex items-center space-x-1 px-2.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-semibold font-mono">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" />
-            <span>SOC-2 TYPE II</span>
-          </div>
-
-          <div className="hidden xl:flex items-center space-x-1 px-2.5 py-0.5 rounded-md bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 text-[10px] font-semibold font-mono">
-            <Lock className="w-3 h-3 text-cyan-400" />
-            <span>FIPS 140-3 HSM</span>
+        <div className={`hidden md:flex items-center space-x-2 pl-4 border-l ${isDark ? 'border-white/[0.08]' : 'border-sky-100'}`}>
+          <div className={`flex items-center space-x-2 px-3 py-1 rounded-full text-xs ${
+            isDark ? 'bg-white/[0.03] border border-white/[0.07] text-slate-300' : 'bg-sky-50/80 border border-sky-100 text-slate-700'
+          }`}>
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            <span className="font-medium">{workspace.company_name || workspace.companyName || workspace.name}</span>
           </div>
         </div>
       </div>
 
-      {/* Center: Omni-Search Bar */}
-      <div className="hidden md:flex items-center flex-1 max-w-md mx-8">
+      {/* Center: Search */}
+      <div className="hidden md:flex items-center flex-1 max-w-sm mx-8">
         <div className="relative w-full">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+          <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             type="text"
-            placeholder="Search candidates, requisitions (REQ-2024-089), or audit ledger..."
-            className="w-full pl-10 pr-12 py-2 text-xs rounded-xl bg-slate-900/90 border border-slate-800 text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+            placeholder="Search candidates, requisitions, audit logs..."
+            className={`w-full pl-9 pr-10 py-1.5 text-xs rounded-xl border transition-all ${
+              isDark
+                ? 'bg-white/[0.03] border-white/[0.07] text-slate-200 placeholder-slate-500 focus:outline-none focus:border-blue-500/50'
+                : 'bg-slate-50/80 border-slate-200 text-slate-900 placeholder-slate-400 focus:outline-none focus:border-sky-400 focus:ring-1 focus:ring-sky-400/30 focus:bg-white'
+            }`}
             onClick={onOpenSearch}
           />
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center space-x-0.5 px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-[10px] text-slate-400 font-mono">
+          <div className={`absolute right-2.5 top-1/2 -translate-y-1/2 flex items-center space-x-0.5 px-1 py-0.5 rounded text-[9px] font-mono ${
+            isDark ? 'bg-white/[0.04] border border-white/[0.08] text-slate-400' : 'bg-slate-200/70 border border-slate-300 text-slate-600'
+          }`}>
             <Command className="w-2.5 h-2.5" />
             <span>K</span>
           </div>
         </div>
       </div>
 
-      {/* Right: Security Attestation & User Controls */}
-      <div className="flex items-center space-x-3 sm:space-x-4">
-        {/* Zero Data Retention Badge */}
-        <div className="hidden sm:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-slate-900 border border-slate-800 text-slate-300 text-[11px] font-mono">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-          <span className="text-emerald-400 font-semibold">ZDR</span>
-          <span className="text-slate-500">:</span>
-          <span>ACTIVE</span>
-        </div>
-
-        {/* Notification Bell */}
+      {/* Right: Controls + Theme Switcher + User Profile */}
+      <div className="flex items-center space-x-3">
+        {/* Theme Toggle Button (Light/Dark) */}
         <button
-          className="relative p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800/80 transition-colors cursor-pointer"
-          title="Security and pipeline notifications"
+          onClick={toggleTheme}
+          title={isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
+          className={`p-2 rounded-xl transition-all cursor-pointer border ${
+            isDark
+              ? 'bg-white/[0.04] border-white/[0.08] text-amber-400 hover:bg-white/[0.08]'
+              : 'bg-sky-50/70 border-sky-200/70 text-sky-600 hover:bg-sky-100 hover:text-sky-700'
+          }`}
         >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-indigo-500 ring-2 ring-[#0B0F17]" />
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
         </button>
 
         {/* User Profile Popover & Sign Out */}
         <div className="relative">
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="flex items-center space-x-2.5 p-1.5 rounded-xl hover:bg-slate-800/80 transition-colors cursor-pointer border border-transparent hover:border-slate-800"
+            className={`flex items-center space-x-2.5 py-1 px-2 rounded-xl transition-all cursor-pointer border ${
+              isDark
+                ? 'hover:bg-white/[0.04] border-transparent hover:border-white/[0.06]'
+                : 'hover:bg-sky-50/60 border-transparent hover:border-sky-100'
+            }`}
           >
-            <div className="relative">
-              <img
-                src={currentUser?.avatar || roleDef.avatar}
-                alt={currentUser?.full_legal_name || currentUser?.name}
-                className="w-8 h-8 rounded-lg object-cover ring-1 ring-slate-700"
-              />
-              <span className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-2 ring-[#0B0F17]" />
+            <img
+              src={currentUser?.avatar || roleDef.avatar}
+              alt={currentUser?.full_legal_name || currentUser?.name}
+              className="w-7 h-7 rounded-full object-cover ring-1 ring-sky-400/40"
+            />
+            <div className="text-left hidden lg:block">
+              <div className="text-xs font-medium leading-none">
+                {currentUser?.full_legal_name || currentUser?.name || 'Authorized User'}
+              </div>
+              <div className="text-[10px] text-sky-500 dark:text-sky-400 mt-1 leading-none font-mono">
+                {roleDef.shortName}
+              </div>
             </div>
-            <div className="hidden md:block text-left">
-              <p className="text-xs font-bold text-white truncate max-w-[120px]">
-                {currentUser?.full_legal_name || currentUser?.name}
-              </p>
-              <p className="text-[10px] text-indigo-400 font-semibold">{roleDef.shortName}</p>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
           </button>
 
-          {/* Profile Dropdown */}
           {showProfileMenu && (
-            <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-[#0E131F] border border-slate-800 shadow-2xl p-3 z-50 text-left animate-fadeIn">
-              <div className="p-2 border-b border-slate-800/80 mb-2">
-                <p className="text-xs font-bold text-white">
+            <div className={`absolute right-0 mt-2 w-64 rounded-2xl border shadow-2xl p-2 z-50 animate-fadeIn ${
+              isDark ? 'bg-[#0E1320] border-white/[0.1] text-white' : 'bg-white border-slate-200 text-slate-900 shadow-sky-500/10'
+            }`}>
+              <div className={`p-3 border-b ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+                <div className="text-xs font-semibold">
                   {currentUser?.full_legal_name || currentUser?.name}
-                </p>
-                <p className="text-[11px] text-slate-400 truncate">{currentUser?.email}</p>
-                <div className="mt-2 inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md bg-indigo-500/10 border border-indigo-500/20 text-[10px] text-indigo-300 font-mono">
-                  <span>ROLE:</span>
-                  <span className="font-bold">{roleDef.shortName}</span>
+                </div>
+                <div className="text-[11px] text-slate-400 truncate">{currentUser?.email}</div>
+                <div className="mt-2 inline-flex items-center space-x-1.5 px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 border border-sky-500/20 text-[10px] font-mono">
+                  <span>{roleDef.name}</span>
                 </div>
               </div>
 
-              <div className="space-y-1 text-xs">
-                <div className="px-2 py-1.5 text-slate-400 flex items-center justify-between text-[11px] font-mono">
-                  <span>Enclave ID</span>
-                  <span className="text-slate-300 truncate max-w-[120px]">{workspace.workspace_id || workspace.id || 'WS-ENCLAVE'}</span>
-                </div>
-                <div className="px-2 py-1.5 text-slate-400 flex items-center justify-between text-[11px] font-mono">
-                  <span>Session Hash</span>
-                  <span className="text-emerald-400">VERIFIED</span>
-                </div>
-              </div>
-
-              <div className="mt-3 pt-2 border-t border-slate-800/80">
+              <div className="p-1">
                 <button
                   onClick={() => {
                     setShowProfileMenu(false);
                     logout();
                   }}
-                  className="w-full flex items-center space-x-2 px-3 py-2 rounded-xl text-xs font-semibold text-rose-400 hover:text-white hover:bg-rose-950/40 border border-transparent hover:border-rose-800/40 transition-colors cursor-pointer"
+                  className="w-full flex items-center space-x-2 px-3 py-2 text-xs text-rose-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-500/10 rounded-xl transition-colors cursor-pointer"
                 >
                   <LogOut className="w-3.5 h-3.5" />
-                  <span>Sign Out of Enclave</span>
+                  <span>Sign Out</span>
                 </button>
               </div>
             </div>

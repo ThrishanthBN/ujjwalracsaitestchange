@@ -1,68 +1,41 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import {
-  User,
   Sparkles,
   CheckCircle2,
   XCircle,
   FileText,
-  Clock,
-  ShieldCheck,
   Lock,
-  ChevronDown,
-  ChevronUp,
-  Download,
-  Share2,
   ThumbsUp,
-  Check,
-  AlertTriangle,
-  Award,
-  Layers,
-  Terminal,
   ArrowRight,
 } from 'lucide-react';
 
 export function CandidateEvaluation({ initialCandidateId, onNavigate }) {
-  const { candidates, aiEvaluations, toggleChecklist, submitHmRecommendation } = useAuth();
+  const { candidates, submitHmRecommendation, addToast } = useAuth();
+  const { isDark } = useTheme();
   const [selectedId, setSelectedId] = useState(
     initialCandidateId || candidates[0]?.candidate_id || candidates[0]?.id || ''
   );
-  const [showVerbatim, setShowVerbatim] = useState(true);
+  const [debriefText, setDebriefText] = useState('Demonstrates exceptional mastery of required stack and engineering fundamentals. Strong hire recommendation.');
 
   if (candidates.length === 0) {
     return (
-      <div className="space-y-6">
-        <div className="pb-4 border-b border-slate-800">
-          <div className="flex items-center space-x-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-            <span>Autonomous AI Evaluation & Technical Debrief Enclave</span>
-          </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            Candidate Technical Evaluation Dossier
-          </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Real-time explainable AI match scorecard with immutable cryptographic debrief seal.
-          </p>
+      <div className="space-y-6 max-w-4xl py-12 text-center animate-fadeIn">
+        <div className="w-14 h-14 rounded-2xl bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400 flex items-center justify-center mx-auto shadow-sm">
+          <Sparkles className="w-6 h-6" />
         </div>
-
-        <div className="rounded-3xl p-12 bg-slate-900/80 border border-slate-800 text-center space-y-4 shadow-2xl">
-          <div className="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mx-auto border border-indigo-500/20">
-            <Sparkles className="w-8 h-8" />
-          </div>
-          <h2 className="text-lg font-bold text-white">Evaluation Queue Empty</h2>
-          <p className="text-xs text-slate-400 max-w-md mx-auto leading-relaxed">
-            No candidate dossiers have been routed to Hiring Manager review yet. Once Talent Acquisition ingests resumes and initiates AI scoring, candidates with matched skills and debrief notes will appear here.
-          </p>
-          <div className="pt-2">
-            <button
-              onClick={() => onNavigate && onNavigate('hm-dashboard')}
-              className="inline-flex items-center space-x-2 px-5 py-2.5 rounded-xl bg-indigo-600 text-white text-xs font-semibold hover:bg-indigo-500 transition-all cursor-pointer shadow-lg shadow-indigo-600/30"
-            >
-              <span>Go to Department Overview</span>
-              <ArrowRight className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
+        <h2 className="text-xl font-light tracking-tight">Candidate Evaluation Queue Empty</h2>
+        <p className={`text-xs max-w-md mx-auto leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+          No candidates have been ingested yet. Ingest applicant resumes from the Talent Acquisition portal to generate AI match scorecards.
+        </p>
+        <button
+          onClick={() => onNavigate && onNavigate('ta-intake')}
+          className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white text-xs font-semibold transition-all shadow-md shadow-sky-500/25 cursor-pointer inline-flex items-center space-x-2"
+        >
+          <span>Go to Resume Intake</span>
+          <ArrowRight className="w-3.5 h-3.5" />
+        </button>
       </div>
     );
   }
@@ -71,452 +44,244 @@ export function CandidateEvaluation({ initialCandidateId, onNavigate }) {
   const candId = candidate.candidate_id || candidate.id;
   const isImmutable = Boolean(candidate.cryptographicSeal);
 
-  // Safely extract AI evaluation data from aiEvaluations table
-  const evalRecord = aiEvaluations[candId] || {};
-  const matchedSkills = evalRecord.matched_skills_json || candidate.matchedSkills || [
-    { name: 'Core System Engineering', confidence: 94, verified: true },
-    { name: 'Architecture & Design Patterns', confidence: 91, verified: true },
-    { name: 'Cross-functional Collaboration', confidence: 88, verified: true },
+  const matchedSkills = candidate.skillsMatched || candidate.matched_skills || [
+    'React', 'Redux', 'Apollo Client', 'GraphQL'
   ];
-  const missingSkills = evalRecord.missing_skills_json || candidate.missingSkills || [];
-  const dimensionalScores = evalRecord.dimensional_scores || candidate.dimensionalScores || {
-    technicalProficiency: candidate.overallMatch || 88,
-    systemArchitecture: Math.max(70, (candidate.overallMatch || 88) - 4),
-    frameworkRecency: Math.min(99, (candidate.overallMatch || 88) + 3),
-    cultureMentorship: 85,
+  const missingSkills = candidate.skillsMissing || candidate.missing_skills || [];
+  const overallScore = candidate.overallMatch || candidate.match_score_percent || 88;
+
+  const handleSealAndSubmit = () => {
+    if (isImmutable) return;
+    submitHmRecommendation(candId, 'STRONG_HIRE', debriefText);
+    addToast('Recommendation Sealed', `${candidate.name || candidate.candidate_name}'s technical dossier is now locked and routed to HR.`, 'success');
   };
-  const aiSummary = evalRecord.aiSummary || candidate.aiSummary || `Autonomous analysis of ${candidate.candidate_name || candidate.name}'s dossier. Strong technical foundation identified with verified credentials.`;
 
   return (
-    <div className="space-y-6">
-      {/* Top Header */}
-      <div className="pb-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-        <div>
-          <div className="flex items-center space-x-2 text-xs font-semibold text-indigo-400 uppercase tracking-wider mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
-            <span>Autonomous AI Evaluation & Technical Debrief Enclave</span>
+    <div className="space-y-10 max-w-5xl animate-fadeIn">
+      {/* Editorial Header */}
+      <div className={`flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 pb-6 border-b ${
+        isDark ? 'border-white/[0.07]' : 'border-slate-200'
+      }`}>
+        <div className="space-y-2 max-w-2xl">
+          <div className="flex items-center space-x-2 text-xs font-mono text-sky-600 dark:text-sky-400">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
+            <span>HIRING MANAGER &bull; EXPLAINABLE AI EVALUATION</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">
-            Candidate Technical Evaluation Dossier
+          <h1 className="text-3xl font-light tracking-tight">
+            Candidate Technical Dossier
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
-            Review AI-synthesized dossiers, evaluate dimensional competency scores, and inspect verbatim interview debriefs.
+          <p className={`text-sm leading-relaxed ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+            Explainable AI match scorecards splitting overall role-fit into verified matched skills and critical missing gaps, backed by immutable technical debrief notes.
           </p>
         </div>
 
-        {/* Requisition Scope Tag */}
-        <div className="flex items-center space-x-2">
-          <span className="px-3.5 py-1.5 rounded-xl bg-slate-900 border border-slate-800 text-xs font-semibold text-slate-300 font-mono">
-            Target Requisition: <span className="text-indigo-400">{candidate.job_id || candidate.targetRequisitionId}</span>
-          </span>
+        <div className="flex items-center space-x-3 flex-shrink-0">
+          <button
+            onClick={() => onNavigate && onNavigate('hm-dashboard')}
+            className={`inline-flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer ${
+              isDark
+                ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border-white/[0.08]'
+                : 'bg-white hover:bg-slate-50 text-slate-700 border-slate-200 shadow-sm'
+            }`}
+          >
+            <span>Department Requisitions</span>
+          </button>
         </div>
       </div>
 
-      {/* Main Split Layout: Left Review Queue & Right Evaluation Dossier */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Left Column: Candidate Review Queue (4 cols) */}
+      {/* Split Queue & Dossier */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+        {/* Left: Candidate Selector */}
         <div className="lg:col-span-4 space-y-3">
-          <div className="flex items-center justify-between text-xs font-bold text-slate-400 uppercase tracking-wider px-1">
-            <span>Review Queue ({candidates.length})</span>
-            <span className="text-[11px] font-mono text-indigo-400">SLA: 24h Remaining</span>
+          <div className={`text-xs font-semibold uppercase tracking-wider mb-2 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+            Candidates for Review ({candidates.length})
           </div>
 
-          <div className="space-y-2.5 max-h-[70vh] overflow-y-auto pr-1">
+          <div className="space-y-2 max-h-[65vh] overflow-y-auto pr-1">
             {candidates.map((cand) => {
               const currentId = cand.candidate_id || cand.id;
               const isSelected = currentId === candId;
-              const hasSeal = Boolean(cand.cryptographicSeal);
-              const candName = cand.candidate_name || cand.name;
+              const score = cand.overallMatch || cand.match_score_percent || 0;
+              const name = cand.candidate_name || cand.name;
 
               return (
-                <div
+                <button
                   key={currentId}
                   onClick={() => setSelectedId(currentId)}
-                  className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                  className={`w-full p-4 rounded-2xl text-left border transition-all cursor-pointer ${
                     isSelected
-                      ? 'bg-slate-800/90 border-indigo-500/80 ring-2 ring-indigo-500/20 shadow-xl shadow-indigo-950/30'
-                      : 'bg-slate-900/70 border-slate-800/80 hover:border-slate-700'
+                      ? isDark
+                        ? 'bg-blue-600/15 border-blue-500 text-white shadow-sm ring-1 ring-blue-500/30'
+                        : 'bg-sky-50 border-sky-400 text-sky-950 shadow-sm ring-1 ring-sky-300'
+                      : isDark
+                        ? 'bg-white/[0.02] border-white/[0.06] text-slate-400 hover:text-white hover:bg-white/[0.04]'
+                        : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
                   }`}
                 >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-3">
-                      <img
-                        src={cand.avatar}
-                        alt={candName}
-                        className="w-10 h-10 rounded-xl object-cover ring-1 ring-slate-700"
-                      />
-                      <div>
-                        <h4 className="text-xs font-bold text-white">{candName}</h4>
-                        <p className="text-[11px] text-slate-400 truncate max-w-[160px]">{cand.currentTitle}</p>
-                      </div>
-                    </div>
-
-                    {/* Circular Fit Badge */}
-                    <div className="flex flex-col items-end">
-                      <span className="px-2 py-0.5 rounded-md text-xs font-mono font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
-                        {cand.overallMatch}%
-                      </span>
-                      <span className="text-[9px] text-slate-500 mt-0.5">Match</span>
-                    </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-semibold truncate max-w-[170px]">{name}</span>
+                    <span className="font-mono text-xs font-bold px-2 py-0.5 rounded bg-sky-500/10 border border-sky-500/20 text-sky-600 dark:text-sky-400">
+                      {score}%
+                    </span>
                   </div>
-
-                  <div className="mt-3 pt-2.5 border-t border-slate-800/80 flex items-center justify-between text-[11px]">
-                    <span className="text-slate-400">{cand.experienceYears}y exp &bull; {cand.location}</span>
-                    {hasSeal ? (
-                      <span className="text-emerald-400 font-semibold flex items-center space-x-1 font-mono">
-                        <Lock className="w-3 h-3 text-emerald-400" />
-                        <span>Sealed</span>
-                      </span>
-                    ) : (
-                      <span className="text-indigo-400 font-medium">Pending Debrief</span>
-                    )}
+                  <div className={`text-[11px] mt-1 truncate ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{cand.email || cand.candidate_email}</div>
+                  <div className={`mt-2 text-[10px] font-mono flex items-center justify-between ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                    <span>{cand.pipeline_status || cand.status || 'Screening'}</span>
+                    {cand.cryptographicSeal && <span className="text-emerald-500 font-semibold">&bull; Sealed</span>}
                   </div>
-                </div>
+                </button>
               );
             })}
           </div>
-
-          <div className="p-4 rounded-2xl bg-indigo-950/20 border border-indigo-500/20 text-xs text-slate-300">
-            <div className="flex items-center space-x-1.5 font-bold text-indigo-300 mb-1">
-              <Clock className="w-4 h-4 text-indigo-400" />
-              <span>SLA Review Target</span>
-            </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed">
-              Avg turn-around 14.2h. Healthy green SLA status for active hiring manager loops.
-            </p>
-          </div>
         </div>
 
-        {/* Right Column: Detailed Candidate Dossier (8 cols) */}
+        {/* Right: Explainable Scorecard & Dossier */}
         <div className="lg:col-span-8 space-y-6">
-          {/* Candidate Profile Header Card */}
-          <div className="rounded-3xl p-6 bg-slate-900/80 border border-slate-800 shadow-xl shadow-black/30 relative overflow-hidden">
-            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-              <div className="flex items-start space-x-4">
-                <img
-                  src={candidate.avatar}
-                  alt={candidate.candidate_name || candidate.name}
-                  className="w-16 h-16 rounded-2xl object-cover ring-2 ring-slate-700 shadow-md"
-                />
-                <div>
-                  <div className="flex items-center space-x-2">
-                    <h2 className="text-xl font-extrabold text-white tracking-tight">
-                      {candidate.candidate_name || candidate.name}
-                    </h2>
-                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                      {candidate.pipeline_status || candidate.status}
-                    </span>
-                  </div>
-                  <p className="text-xs text-slate-300 font-medium mt-0.5">{candidate.currentTitle}</p>
-                  <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-slate-400">
-                    <span>{candidate.location}</span>
-                    <span>&bull;</span>
-                    <span>{candidate.experienceYears} Years Experience</span>
-                    <span>&bull;</span>
-                    <span className="font-mono text-indigo-300 font-semibold">Comp: {candidate.compensationExpectation}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-2">
-                <span className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-slate-950 border border-slate-800 text-slate-300 text-xs font-semibold">
-                  <FileText className="w-3.5 h-3.5 text-slate-400" />
-                  <span>Resume ({candidate.resumeSize || '2.4 MB'})</span>
-                </span>
-              </div>
-            </div>
-
-            {/* Synthesized AI Executive Evaluation */}
-            <div className="mt-5 p-4 rounded-2xl bg-slate-950/80 border border-slate-800">
-              <div className="flex items-center space-x-1.5 text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1.5">
-                <Sparkles className="w-3.5 h-3.5" />
-                <span>Synthesized AI Executive Evaluation (Model: RACS Core v4.2)</span>
-              </div>
-              <p className="text-xs text-slate-300 leading-relaxed">{aiSummary}</p>
-            </div>
-          </div>
-
-          {/* Dimensional Fit Scorecard & Circular Progress Ring (IA-8 Section 8.7) */}
-          <div className="rounded-3xl p-6 bg-slate-900/80 border border-slate-800 shadow-xl shadow-black/30">
-            <div className="flex items-center justify-between pb-4 border-b border-slate-800">
+          {/* Candidate Dossier Overview Card */}
+          <div className={`p-6 sm:p-8 rounded-3xl border shadow-xl space-y-6 ${
+            isDark ? 'bg-[#0E1320]/80 border-white/[0.08]' : 'bg-white border-slate-200'
+          }`}>
+            <div className={`flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b ${
+              isDark ? 'border-white/[0.06]' : 'border-slate-100'
+            }`}>
               <div>
-                <h3 className="text-sm font-bold text-white tracking-tight">Dimensional Fit Scorecard</h3>
-                <p className="text-xs text-slate-400">
-                  Calibrated against {candidate.job_id || candidate.targetRequisitionId} Core Competencies.
+                <h2 className="text-xl font-bold tracking-tight">
+                  {candidate.candidate_name || candidate.name}
+                </h2>
+                <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>
+                  {candidate.email || candidate.candidate_email} &bull; Applied for{' '}
+                  <span className="font-semibold text-sky-600 dark:text-sky-400">{candidate.roleApplied || 'Lead Systems Architect'}</span>
                 </p>
               </div>
-              <span className="text-[11px] font-mono px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-300 font-semibold border border-indigo-500/20">
-                Confidence: High (98.2%)
-              </span>
-            </div>
 
-            <div className="mt-6 grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
-              {/* Circular Gauge Ring (4 cols) */}
-              <div className="md:col-span-4 flex flex-col items-center justify-center text-center p-4 rounded-2xl bg-slate-950/70 border border-slate-800">
-                <div className="relative w-28 h-28 flex items-center justify-center">
-                  <svg className="w-28 h-28 transform -rotate-90" viewBox="0 0 100 100">
+              {/* Luminous Match Meter */}
+              <div className="flex items-center space-x-3 flex-shrink-0">
+                <div className="relative w-14 h-14 flex items-center justify-center">
+                  <svg className="w-14 h-14 transform -rotate-90" viewBox="0 0 48 48">
                     <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#1E293B"
-                      strokeWidth="8"
-                      fill="transparent"
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke={isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)'}
+                      strokeWidth="3"
+                      fill="none"
                     />
                     <circle
-                      cx="50"
-                      cy="50"
-                      r="40"
-                      stroke="#6366F1"
-                      strokeWidth="8"
-                      fill="transparent"
-                      strokeDasharray={2 * Math.PI * 40}
-                      strokeDashoffset={2 * Math.PI * 40 * (1 - (candidate.overallMatch || 80) / 100)}
+                      cx="24"
+                      cy="24"
+                      r="20"
+                      stroke={overallScore >= 80 ? '#10B981' : '#F59E0B'}
+                      strokeWidth="3.2"
+                      fill="none"
+                      strokeDasharray={2 * Math.PI * 20}
+                      strokeDashoffset={2 * Math.PI * 20 * (1 - overallScore / 100)}
                       strokeLinecap="round"
-                      className="transition-all duration-1000 ease-out"
                     />
                   </svg>
-                  <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <span className="text-2xl font-extrabold text-white font-mono tracking-tight">
-                      {candidate.overallMatch || 80}%
-                    </span>
-                    <span className="text-[9px] uppercase tracking-wider font-bold text-indigo-400">
-                      ROLE MATCH
-                    </span>
-                  </div>
+                  <span className="absolute font-mono text-xs font-bold">{overallScore}%</span>
                 </div>
-                <span className="text-[11px] text-slate-400 mt-2 font-medium">Overall Candidate Fit</span>
-              </div>
-
-              {/* Horizontal Competency Bars (8 cols) */}
-              <div className="md:col-span-8 space-y-3.5 text-xs">
-                <div>
-                  <div className="flex items-center justify-between font-semibold mb-1">
-                    <span className="text-slate-200">Core Technical Proficiency</span>
-                    <span className="font-mono text-indigo-400 font-bold">{dimensionalScores.technicalProficiency}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-indigo-500 to-indigo-600 rounded-full"
-                      style={{ width: `${dimensionalScores.technicalProficiency}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between font-semibold mb-1">
-                    <span className="text-slate-200">Architecture & Distributed Scale</span>
-                    <span className="font-mono text-cyan-400 font-bold">{dimensionalScores.systemArchitecture}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-cyan-500 to-cyan-400 rounded-full"
-                      style={{ width: `${dimensionalScores.systemArchitecture}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between font-semibold mb-1">
-                    <span className="text-slate-200">Framework Recency & Best Practices</span>
-                    <span className="font-mono text-purple-400 font-bold">{dimensionalScores.frameworkRecency}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-purple-500 to-purple-600 rounded-full"
-                      style={{ width: `${dimensionalScores.frameworkRecency}%` }}
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center justify-between font-semibold mb-1">
-                    <span className="text-slate-200">Culture & Technical Mentorship</span>
-                    <span className="font-mono text-emerald-400 font-bold">{dimensionalScores.cultureMentorship}%</span>
-                  </div>
-                  <div className="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                    <div
-                      className="h-full bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full"
-                      style={{ width: `${dimensionalScores.cultureMentorship}%` }}
-                    />
-                  </div>
+                <div className="text-left">
+                  <div className="text-xs font-semibold">AI Match Score</div>
+                  <div className={`text-[10px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Calibrated via BYOK</div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* Explainable AI Skill Breakdown: Green Matched vs Red Missing */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Green Matched Skills List */}
-            <div className="rounded-3xl p-5 bg-slate-900/80 border border-slate-800 shadow-xl shadow-black/30">
-              <div className="flex items-center space-x-2 pb-3 border-b border-slate-800 text-emerald-400 text-xs font-bold uppercase tracking-wider">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                <span>Verified Matched Competencies ({matchedSkills.length})</span>
-              </div>
-
-              <div className="mt-3.5 space-y-2">
-                {matchedSkills.map((skill, idx) => (
-                  <div
-                    key={idx}
-                    className="p-2.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-center justify-between text-xs"
-                  >
-                    <div className="flex items-center space-x-2 min-w-0">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 flex-shrink-0" />
-                      <span className="font-medium text-slate-200 truncate">{skill.name}</span>
-                    </div>
-                    <span className="font-mono text-[11px] text-emerald-400 font-bold ml-2">
-                      {skill.confidence}%
-                    </span>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Red Missing Skills List */}
-            <div className="rounded-3xl p-5 bg-slate-900/80 border border-slate-800 shadow-xl shadow-black/30">
-              <div className="flex items-center space-x-2 pb-3 border-b border-slate-800 text-red-400 text-xs font-bold uppercase tracking-wider">
-                <XCircle className="w-4 h-4 text-red-400" />
-                <span>Identified Competency Gaps ({missingSkills.length})</span>
-              </div>
-
-              <div className="mt-3.5 space-y-2">
-                {missingSkills.length > 0 ? (
-                  missingSkills.map((gap, idx) => (
-                    <div
-                      key={idx}
-                      className="p-2.5 rounded-xl bg-red-500/5 border border-red-500/20 text-xs space-y-1"
+            {/* Explainable Skill Lists: Green Matched vs Red Missing */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Green Matched Skills */}
+              <div className="p-4 rounded-2xl bg-emerald-500/[0.06] border border-emerald-500/25 space-y-2">
+                <div className="flex items-center space-x-1.5 text-xs font-semibold text-emerald-700 dark:text-emerald-400">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  <span>Verified Matched Competencies ({matchedSkills.length})</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {matchedSkills.map((s) => (
+                    <span
+                      key={s}
+                      className="px-2.5 py-1 rounded-lg bg-emerald-500/10 text-emerald-800 dark:text-emerald-300 border border-emerald-500/25 text-xs font-mono font-medium"
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium text-red-300">{gap.name}</span>
-                        <span className="text-[10px] px-1.5 py-0.2 rounded bg-red-500/10 text-red-400 border border-red-500/20 font-mono">
-                          {gap.severity}
-                        </span>
-                      </div>
-                      <p className="text-[11px] text-slate-400">{gap.impact}</p>
-                    </div>
-                  ))
-                ) : (
-                  <div className="p-4 rounded-xl bg-slate-950/60 border border-slate-800 text-center text-xs text-slate-500">
-                    No critical competency gaps identified against rubric criteria.
-                  </div>
+                      +{s}
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Red Missing Skills */}
+              <div className="p-4 rounded-2xl bg-rose-500/[0.06] border border-rose-500/25 space-y-2">
+                <div className="flex items-center space-x-1.5 text-xs font-semibold text-rose-700 dark:text-rose-400">
+                  <XCircle className="w-3.5 h-3.5" />
+                  <span>Missing Gaps Identified ({missingSkills.length})</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5 pt-1">
+                  {missingSkills.length > 0 ? (
+                    missingSkills.map((s) => (
+                      <span
+                        key={s}
+                        className="px-2.5 py-1 rounded-lg bg-rose-500/10 text-rose-800 dark:text-rose-300 border border-rose-500/25 text-xs font-mono font-medium"
+                      >
+                        -{s}
+                      </span>
+                    ))
+                  ) : (
+                    <span className="text-xs text-slate-500 italic">No missing critical skills identified.</span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* AI Summary Dossier */}
+            <div className="space-y-1.5">
+              <div className={`text-xs font-semibold flex items-center space-x-1.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                <Sparkles className="w-3.5 h-3.5 text-blue-500" />
+                <span>AI Technical Synthesis</span>
+              </div>
+              <p className={`text-xs leading-relaxed p-3.5 rounded-xl border italic ${
+                isDark ? 'bg-black/40 border-white/[0.05] text-slate-300' : 'bg-slate-50 border-slate-200 text-slate-700'
+              }`}>
+                "{candidate.summary || 'Demonstrates exceptional mastery across required competencies. High recommendation.'}"
+              </p>
+            </div>
+
+            {/* Verbatim Debrief Notes & Cryptographic Seal */}
+            <div className={`pt-4 border-t space-y-3 ${isDark ? 'border-white/[0.06]' : 'border-slate-100'}`}>
+              <div className="flex items-center justify-between">
+                <label className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                  Hiring Manager Debrief Notes & Recommendation
+                </label>
+                {isImmutable && (
+                  <span className="inline-flex items-center space-x-1.5 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 text-[11px] font-mono">
+                    <Lock className="w-3 h-3" />
+                    <span>Cryptographically Sealed</span>
+                  </span>
                 )}
               </div>
-            </div>
-          </div>
 
-          {/* Interactive Interview Checklist with Pass/Fail Toggles */}
-          {(candidate.interviewChecklist || []).length > 0 && (
-            <div className="rounded-3xl p-6 bg-slate-900/80 border border-slate-800 shadow-xl shadow-black/30">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-800">
-                <div>
-                  <h3 className="text-sm font-bold text-white tracking-tight">
-                    Interactive Technical Interview Checklist
-                  </h3>
-                  <p className="text-xs text-slate-400">
-                    Toggle checkpoints based on technical debrief performance before executing final handoff.
-                  </p>
-                </div>
-                <span className="text-xs font-mono text-indigo-400">
-                  {candidate.interviewChecklist.filter((c) => c.passed).length}/{candidate.interviewChecklist.length} Passed
-                </span>
-              </div>
+              <textarea
+                rows="3"
+                disabled={isImmutable}
+                value={debriefText}
+                onChange={(e) => setDebriefText(e.target.value)}
+                placeholder="Enter technical interview feedback, whiteboard notes, and final recommendation..."
+                className={`w-full p-3 text-xs rounded-xl border focus:outline-none focus:border-blue-500 transition-all ${
+                  isDark
+                    ? 'bg-black/50 border-white/[0.08] text-white disabled:opacity-60'
+                    : 'bg-slate-50 border-slate-200 text-slate-900 disabled:opacity-60'
+                }`}
+              />
 
-              <div className="mt-4 space-y-3">
-                {candidate.interviewChecklist.map((item) => (
-                  <div
-                    key={item.id}
-                    onClick={() => !isImmutable && toggleChecklist(candId, item.id)}
-                    className={`p-3.5 rounded-2xl border transition-all flex items-center justify-between text-xs cursor-pointer ${
-                      item.passed
-                        ? 'bg-emerald-500/10 border-emerald-500/30 text-slate-200'
-                        : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700'
-                    }`}
-                  >
-                    <div className="flex items-center space-x-3">
-                      <div
-                        className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors ${
-                          item.passed ? 'bg-emerald-500 text-white' : 'border border-slate-700 bg-slate-900'
-                        }`}
-                      >
-                        {item.passed && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-white">{item.category}</div>
-                        <div className="text-[11px] text-slate-400 mt-0.5">{item.question}</div>
-                      </div>
-                    </div>
-
-                    <div className="text-right">
-                      <span className="font-mono text-emerald-400 font-bold">{item.score || 9.5}/10</span>
-                      <div className="text-[10px] text-slate-500">{item.note}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Cryptographically Sealed Handoff & Action Controls (IA-7/IA-8 Immutability) */}
-          <div className="rounded-3xl p-6 bg-slate-900/80 border border-slate-800 shadow-xl shadow-black/30">
-            {isImmutable ? (
-              <div className="space-y-4">
-                <div className="flex items-center space-x-2 text-emerald-400 text-xs font-bold uppercase tracking-wider font-mono">
-                  <Lock className="w-4 h-4 text-emerald-400" />
-                  <span>Legally Immutable Handoff Record Active (hr_handoff_reports)</span>
-                </div>
-
-                <div className="p-4 rounded-2xl bg-slate-950 border border-emerald-500/30 font-mono text-xs text-slate-300 space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-emerald-400">SHA-256 Digest:</span>
-                    <span className="text-[10px] text-slate-400 truncate max-w-xs">{candidate.cryptographicSeal.sha256}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-emerald-400">Signature:</span>
-                    <span className="text-[10px] text-slate-400">{candidate.cryptographicSeal.auditLedgerSignature}</span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-emerald-400">Sealed Timestamp:</span>
-                    <span className="text-[10px] text-slate-400">{candidate.cryptographicSeal.timestamp}</span>
-                  </div>
-                </div>
-
-                <p className="text-xs text-slate-400">
-                  This recommendation is locked from further edits and routed to the HR Representative for statutory pay-parity and executive offer dispatch.
-                </p>
-
-                <div className="pt-2 flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-500 font-mono">LOCKED STATE: READ-ONLY ENFORCED</span>
+              {!isImmutable && (
+                <div className="flex justify-end pt-2">
                   <button
-                    onClick={() => onNavigate('hr-offers')}
-                    className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold transition-all flex items-center space-x-1.5 cursor-pointer"
+                    onClick={handleSealAndSubmit}
+                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white text-xs font-semibold shadow-md shadow-sky-500/25 transition-all flex items-center space-x-2 cursor-pointer hover:scale-[1.02]"
                   >
-                    <span>View in HR Offer Queue</span>
-                    <ArrowRight className="w-3.5 h-3.5" />
+                    <ThumbsUp className="w-3.5 h-3.5" />
+                    <span>Seal Technical Recommendation & Route to HR</span>
                   </button>
                 </div>
-              </div>
-            ) : (
-              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                  <h4 className="text-xs font-bold text-white uppercase tracking-wider">
-                    Ready for Formal Technical Handoff?
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Clicking "Approve for Hire" attaches a cryptographic SHA-256 seal, saves to <code>hr_handoff_reports</code>, and routes to HR.
-                  </p>
-                </div>
-
-                <div className="flex items-center space-x-2 flex-shrink-0">
-                  <button
-                    onClick={() => submitHmRecommendation(candId, 'Strong Hire')}
-                    className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-cyan-600 text-white text-xs font-bold hover:shadow-lg transition-all flex items-center space-x-2 cursor-pointer shadow-indigo-600/30"
-                  >
-                    <Award className="w-4 h-4" />
-                    <span>Approve for Hire (Route to HR)</span>
-                  </button>
-                </div>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         </div>
       </div>

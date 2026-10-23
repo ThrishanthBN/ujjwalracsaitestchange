@@ -136,7 +136,25 @@ export const api = {
     });
   },
 
-  // 6. BYOK Keys
+  // 6. Candidates
+  async uploadCandidate(workspaceId, jobId, uploadedByUserId, candidateData) {
+    return request(
+      `/candidates?workspaceId=${encodeURIComponent(workspaceId)}&jobId=${encodeURIComponent(jobId)}&uploadedByUserId=${encodeURIComponent(uploadedByUserId)}`,
+      {
+        method: 'POST',
+        body: JSON.stringify(candidateData),
+      }
+    );
+  },
+
+  async getCandidatesByJob(workspaceId, jobId) {
+    return request(
+      `/candidates/job/${encodeURIComponent(jobId)}?workspaceId=${encodeURIComponent(workspaceId)}`,
+      { method: 'GET' }
+    );
+  },
+
+  // 7. BYOK Keys
   async configureByokKey(workspaceId, userId, providerName, rawApiKey) {
     return request(`/byok/configure?workspaceId=${encodeURIComponent(workspaceId)}&userId=${encodeURIComponent(userId)}`, {
       method: 'POST',

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { ROLES, ROLE_DEFINITIONS } from '../../data/mockData';
 import {
   Users,
@@ -22,6 +23,7 @@ import {
 
 export function UserManagement({ initialTab = 'users', onNavigate }) {
   const { users, invitations = [], generateInvitation, revokeUserAccess, addToast } = useAuth();
+  const { isDark } = useTheme();
   const [activeSubTab, setActiveSubTab] = useState(initialTab);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [revokeUserTarget, setRevokeUserTarget] = useState(null);
@@ -80,16 +82,18 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="pb-4 border-b border-slate-800 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+      <div className={`pb-4 border-b flex flex-col md:flex-row md:items-center md:justify-between gap-4 ${
+        isDark ? 'border-white/[0.08]' : 'border-slate-200'
+      }`}>
         <div>
-          <div className="flex items-center space-x-2 text-xs font-semibold text-purple-400 uppercase tracking-wider mb-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-purple-400" />
+          <div className="flex items-center space-x-2 text-xs font-semibold text-sky-600 dark:text-sky-400 uppercase tracking-wider mb-1">
+            <span className="w-1.5 h-1.5 rounded-full bg-sky-500 dark:bg-sky-400" />
             <span>Identity & Access Management (IAM) &bull; Spring Boot Controller Aligned</span>
           </div>
-          <h1 className="text-2xl font-extrabold text-white tracking-tight">
+          <h1 className={`text-2xl font-bold tracking-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
             User Management & Cryptographic Role Invitations
           </h1>
-          <p className="text-xs text-slate-400 mt-0.5">
+          <p className={`text-xs mt-0.5 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
             Non-admin personas cannot self-register publicly. Generate 48-hour role invite tokens, monitor active workspace collaborators, and enforce revocation boundaries.
           </p>
         </div>
@@ -100,7 +104,7 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
               setActiveSubTab('invitations');
               setGeneratedInviteLink('');
             }}
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-purple-600 text-white text-xs font-semibold hover:bg-purple-500 shadow-lg shadow-purple-600/30 transition-all cursor-pointer"
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white text-xs font-semibold shadow-md shadow-sky-500/25 transition-all cursor-pointer"
           >
             <UserPlus className="w-3.5 h-3.5" />
             <span>Generate Role Invite</span>
@@ -109,13 +113,17 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
       </div>
 
       {/* Navigation Sub-Tabs */}
-      <div className="flex items-center space-x-2 border-b border-slate-800 pb-3">
+      <div className={`flex items-center space-x-2 border-b pb-3 ${
+        isDark ? 'border-white/[0.08]' : 'border-slate-200'
+      }`}>
         <button
           onClick={() => setActiveSubTab('users')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             activeSubTab === 'users'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/25'
-              : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
+              ? 'bg-sky-500 text-white shadow-md shadow-sky-500/25'
+              : isDark
+                ? 'bg-[#0E1320]/80 text-slate-400 hover:text-white border border-white/[0.08]'
+                : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm'
           }`}
         >
           <Users className="w-3.5 h-3.5" />
@@ -126,8 +134,10 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
           onClick={() => setActiveSubTab('invitations')}
           className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all cursor-pointer ${
             activeSubTab === 'invitations'
-              ? 'bg-purple-600 text-white shadow-lg shadow-purple-600/25'
-              : 'bg-slate-900/80 text-slate-400 hover:text-white border border-slate-800'
+              ? 'bg-sky-500 text-white shadow-md shadow-sky-500/25'
+              : isDark
+                ? 'bg-[#0E1320]/80 text-slate-400 hover:text-white border border-white/[0.08]'
+                : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200 shadow-sm'
           }`}
         >
           <UserPlus className="w-3.5 h-3.5" />
@@ -137,31 +147,37 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
       {/* INLINE ROLE INVITATION GENERATOR (Prominently shown on Invitations Tab) */}
       {activeSubTab === 'invitations' && (
-        <div className="rounded-3xl p-6 bg-slate-900/90 border border-purple-500/30 shadow-2xl space-y-4">
-          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div className={`rounded-3xl p-6 border shadow-xl space-y-4 ${
+          isDark ? 'bg-[#0E1320]/90 border-blue-500/30 shadow-black/40' : 'bg-white border-sky-200 shadow-slate-200/50'
+        }`}>
+          <div className={`flex items-center justify-between pb-3 border-b ${
+            isDark ? 'border-white/[0.08]' : 'border-slate-100'
+          }`}>
             <div className="flex items-center space-x-2.5">
-              <div className="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-lg bg-sky-500/10 text-sky-600 dark:text-sky-400 flex items-center justify-center">
                 <UserPlus className="w-4 h-4" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Generate Role-Based Cryptographic Invite Link</h3>
-                <p className="text-xs text-slate-400">Issues a signed one-time registration link valid for 48 hours for the chosen role.</p>
+                <h3 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>Generate Role-Based Cryptographic Invite Link</h3>
+                <p className={`text-xs ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>Issues a signed one-time registration link valid for 48 hours for the chosen role.</p>
               </div>
             </div>
-            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold">
+            <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 font-semibold">
               48-Hour TTL Enforced
             </span>
           </div>
 
           <form onSubmit={handleGenerateInvite} className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Target Persona Role <span className="text-purple-400">*</span>
+              <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Target Persona Role <span className="text-blue-500">*</span>
               </label>
               <select
                 value={inviteRole}
                 onChange={(e) => setInviteRole(e.target.value)}
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white text-xs focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer"
+                className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer ${
+                  isDark ? 'bg-[#0A0D14] border-white/[0.1] text-white' : 'bg-slate-50 border-slate-200 text-slate-900'
+                }`}
               >
                 <option value={ROLES.TALENT_ACQUISITION}>Talent Acquisition (TA Lead)</option>
                 <option value={ROLES.HIRING_MANAGER}>Hiring Manager (HM Lead)</option>
@@ -171,8 +187,8 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
-                Recipient Corporate Email <span className="text-purple-400">*</span>
+              <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+                Recipient Corporate Email <span className="text-blue-500">*</span>
               </label>
               <input
                 type="email"
@@ -180,12 +196,14 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                 value={inviteEmail}
                 onChange={(e) => setInviteEmail(e.target.value)}
                 placeholder="collaborator@enterprise.internal"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDark ? 'bg-[#0A0D14] border-white/[0.1] text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                }`}
               />
             </div>
 
             <div>
-              <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-1">
+              <label className={`block text-[11px] font-semibold uppercase tracking-wider mb-1 ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                 Department
               </label>
               <input
@@ -193,14 +211,16 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                 value={inviteDept}
                 onChange={(e) => setInviteDept(e.target.value)}
                 placeholder="e.g. Engineering Platforms"
-                className="w-full px-3 py-2 rounded-xl bg-slate-950 border border-slate-700 text-white placeholder-slate-500 text-xs focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className={`w-full px-3 py-2 rounded-xl border text-xs focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  isDark ? 'bg-[#0A0D14] border-white/[0.1] text-white placeholder-slate-500' : 'bg-slate-50 border-slate-200 text-slate-900 placeholder-slate-400'
+                }`}
               />
             </div>
 
             <div>
               <button
                 type="submit"
-                className="w-full py-2 px-4 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-bold transition-all shadow-lg shadow-purple-600/30 flex items-center justify-center space-x-1.5 cursor-pointer h-[38px]"
+                className="w-full py-2 px-4 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white text-xs font-bold transition-all shadow-md shadow-sky-500/25 flex items-center justify-center space-x-1.5 cursor-pointer h-[38px]"
               >
                 <UserPlus className="w-3.5 h-3.5" />
                 <span>Generate Token Link</span>
@@ -210,8 +230,10 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
           {/* Generated Link Display */}
           {generatedInviteLink && (
-            <div className="pt-3 border-t border-slate-800 space-y-2 animate-fadeIn">
-              <span className="text-xs font-semibold text-emerald-400 flex items-center space-x-1">
+            <div className={`pt-3 border-t space-y-2 animate-fadeIn ${
+              isDark ? 'border-white/[0.08]' : 'border-slate-100'
+            }`}>
+              <span className="text-xs font-semibold text-sky-600 dark:text-sky-400 flex items-center space-x-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Invite Link Created Successfully</span>
               </span>
@@ -220,12 +242,14 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                   type="text"
                   readOnly
                   value={generatedInviteLink}
-                  className="flex-1 px-3 py-2 rounded-xl bg-slate-950 border border-slate-800 text-[11px] font-mono text-purple-300 focus:outline-none"
+                  className={`flex-1 px-3 py-2 rounded-xl border text-[11px] font-mono focus:outline-none ${
+                    isDark ? 'bg-black/50 border-white/[0.1] text-sky-300' : 'bg-sky-50/70 border-sky-200 text-sky-950'
+                  }`}
                 />
                 <div className="flex items-center space-x-2 flex-shrink-0">
                   <button
                     onClick={() => handleCopyLink()}
-                    className="px-3.5 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1"
+                    className="px-3.5 py-2 rounded-xl bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 text-white text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1 shadow-md shadow-sky-500/25"
                   >
                     {copied ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
                     <span>{copied ? 'Copied' : 'Copy Link'}</span>
@@ -234,7 +258,9 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                     href={generatedInviteLink}
                     target="_blank"
                     rel="noreferrer"
-                    className="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1"
+                    className={`px-3.5 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer flex items-center space-x-1 ${
+                      isDark ? 'bg-white/[0.04] hover:bg-white/[0.08] text-slate-200 border-white/[0.08]' : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-200'
+                    }`}
                   >
                     <ExternalLink className="w-3.5 h-3.5" />
                     <span>Simulate Open</span>
@@ -248,13 +274,17 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
       {/* Collaborator Directory Table (Shown on 'users' tab) */}
       {activeSubTab === 'users' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl shadow-black/30 overflow-hidden">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className={`rounded-2xl border shadow-xl overflow-hidden transition-colors ${
+          isDark ? 'border-white/[0.08] bg-[#0E1320]/80 shadow-black/30' : 'border-slate-200 bg-white shadow-sm'
+        }`}>
+          <div className={`p-4 border-b flex items-center justify-between ${
+            isDark ? 'border-white/[0.08]' : 'border-slate-100'
+          }`}>
             <div className="flex items-center space-x-2">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Workspace Team Directory ({users.length})
               </h3>
-              <span className="px-2 py-0.5 rounded-md bg-purple-500/20 text-purple-300 text-[10px] font-mono border border-purple-500/30">
+              <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-blue-400 text-[10px] font-mono border border-sky-500/20">
                 Database: users
               </span>
             </div>
@@ -263,7 +293,9 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs">
-              <thead className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+              <thead className={`text-slate-500 uppercase tracking-wider font-semibold border-b text-[10px] ${
+                isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-slate-50 border-slate-100'
+              }`}>
                 <tr>
                   <th className="py-3 px-4">Collaborator</th>
                   <th className="py-3 px-4">Role & Persona</th>
@@ -273,45 +305,49 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                   <th className="py-3 px-4 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              <tbody className={`divide-y ${
+                isDark ? 'divide-white/[0.05] text-slate-300' : 'divide-slate-100 text-slate-700'
+              }`}>
                 {users.map((u) => {
                   const roleDef = ROLE_DEFINITIONS[u.role] || { name: u.role, shortName: u.role };
                   const isRevoked = u.access_status === 'Revoked';
 
                   return (
-                    <tr key={u.user_id || u.id} className="hover:bg-slate-800/40 transition-colors">
+                    <tr key={u.user_id || u.id} className={`transition-colors ${
+                      isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'
+                    }`}>
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-3">
                           <img
                             src={u.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'}
                             alt={u.full_legal_name || u.name}
-                            className="w-8 h-8 rounded-lg object-cover ring-1 ring-slate-700"
+                            className="w-8 h-8 rounded-lg object-cover ring-1 ring-sky-500/30 dark:ring-blue-500/20"
                           />
                           <div>
-                            <div className="font-semibold text-white">{u.full_legal_name || u.name}</div>
-                            <div className="text-[11px] text-slate-400 font-mono">{u.email}</div>
+                            <div className={`font-semibold ${isDark ? 'text-white' : 'text-slate-900'}`}>{u.full_legal_name || u.name}</div>
+                            <div className={`text-[11px] font-mono ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{u.email}</div>
                           </div>
                         </div>
                       </td>
 
                       <td className="py-3 px-4">
-                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-indigo-500/10 text-indigo-300 border border-indigo-500/20">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-500/10 text-sky-600 dark:text-blue-400 border border-sky-500/20">
                           {roleDef.name}
                         </span>
                       </td>
 
-                      <td className="py-3 px-4 text-slate-300 font-medium">
+                      <td className={`py-3 px-4 font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
                         {u.department || 'Operations'}
                       </td>
 
                       <td className="py-3 px-4">
                         {isRevoked ? (
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/20 text-red-400 border border-red-500/30">
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-red-500/10 text-red-600 dark:text-red-400 border border-red-500/20">
                             <X className="w-3 h-3" />
                             <span>Revoked</span>
                           </span>
                         ) : (
-                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                          <span className="inline-flex items-center space-x-1 px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-blue-400 border border-sky-500/20">
                             <CheckCircle2 className="w-3 h-3" />
                             <span>Active</span>
                           </span>
@@ -320,7 +356,7 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
                       <td className="py-3 px-4">
                         <span className="inline-flex items-center space-x-1 text-[11px] text-slate-400">
-                          <Lock className="w-3 h-3 text-cyan-400" />
+                          <Lock className="w-3 h-3 text-sky-500 dark:text-blue-400" />
                           <span>FIDO2 Enforced</span>
                         </span>
                       </td>
@@ -329,12 +365,12 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                         {u.role !== ROLES.SYSTEM_ADMIN && !isRevoked ? (
                           <button
                             onClick={() => setRevokeUserTarget(u)}
-                            className="text-xs text-red-400 hover:text-red-300 font-medium hover:underline cursor-pointer"
+                            className="text-xs text-red-500 hover:text-red-600 font-medium hover:underline cursor-pointer"
                           >
                             Revoke Access
                           </button>
                         ) : (
-                          <span className="text-[11px] text-slate-600 font-mono">
+                          <span className={`text-[11px] font-mono ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
                             {isRevoked ? 'Deprovisioned' : 'Root Immutable'}
                           </span>
                         )}
@@ -350,13 +386,17 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
       {/* Cryptographic Invitations Table (Shown on 'invitations' tab) */}
       {activeSubTab === 'invitations' && (
-        <div className="rounded-2xl border border-slate-800 bg-slate-900/80 shadow-xl shadow-black/30 overflow-hidden">
-          <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+        <div className={`rounded-2xl border shadow-xl overflow-hidden transition-colors ${
+          isDark ? 'border-white/[0.08] bg-[#0E1320]/80 shadow-black/30' : 'border-slate-200 bg-white shadow-sm'
+        }`}>
+          <div className={`p-4 border-b flex items-center justify-between ${
+            isDark ? 'border-white/[0.08]' : 'border-slate-100'
+          }`}>
             <div className="flex items-center space-x-2">
-              <h3 className="text-xs font-bold text-white uppercase tracking-wider">
+              <h3 className={`text-xs font-bold uppercase tracking-wider ${isDark ? 'text-white' : 'text-slate-900'}`}>
                 Cryptographic Role Invitations ({invitations.length})
               </h3>
-              <span className="px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 text-[10px] font-mono border border-cyan-500/30">
+              <span className="px-2 py-0.5 rounded-md bg-sky-500/10 text-sky-600 dark:text-blue-400 text-[10px] font-mono border border-sky-500/20">
                 Database: invitations
               </span>
             </div>
@@ -366,17 +406,19 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
           <div className="overflow-x-auto">
             {invitations.length === 0 ? (
               <div className="p-12 text-center space-y-3">
-                <div className="w-12 h-12 rounded-2xl bg-purple-500/10 text-purple-400 flex items-center justify-center mx-auto border border-purple-500/20">
+                <div className="w-12 h-12 rounded-2xl bg-sky-500/10 text-sky-600 dark:text-blue-400 flex items-center justify-center mx-auto border border-sky-500/20">
                   <UserPlus className="w-6 h-6" />
                 </div>
-                <h4 className="text-sm font-bold text-white">No Invitations Generated Yet</h4>
-                <p className="text-xs text-slate-400 max-w-sm mx-auto">
+                <h4 className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>No Invitations Generated Yet</h4>
+                <p className={`text-xs max-w-sm mx-auto ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
                   Use the form above to issue your first role-specific invite token for Talent Acquisition, Hiring Managers, or HR.
                 </p>
               </div>
             ) : (
               <table className="w-full text-left text-xs">
-                <thead className="bg-slate-950/60 text-slate-400 uppercase tracking-wider font-semibold border-b border-slate-800">
+                <thead className={`text-slate-500 uppercase tracking-wider font-semibold border-b text-[10px] ${
+                  isDark ? 'bg-white/[0.02] border-white/[0.08]' : 'bg-slate-50 border-slate-100'
+                }`}>
                   <tr>
                     <th className="py-3 px-4">Invited Email</th>
                     <th className="py-3 px-4">Target Role</th>
@@ -386,35 +428,39 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                     <th className="py-3 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className={`divide-y ${
+                  isDark ? 'divide-white/[0.05] text-slate-300' : 'divide-slate-100 text-slate-700'
+                }`}>
                   {invitations.map((inv) => {
                     const roleDef = ROLE_DEFINITIONS[inv.target_role] || { name: inv.target_role };
                     const isExpired = new Date(inv.expires_at) < new Date();
                     const inviteUrl = `${window.location.origin}/?token=${inv.invite_token}`;
 
                     return (
-                      <tr key={inv.invite_id} className="hover:bg-slate-800/40 transition-colors">
-                        <td className="py-3 px-4 font-medium text-white">{inv.invited_email}</td>
+                      <tr key={inv.invite_id} className={`transition-colors ${
+                        isDark ? 'hover:bg-white/[0.02]' : 'hover:bg-slate-50'
+                      }`}>
+                        <td className={`py-3 px-4 font-medium ${isDark ? 'text-white' : 'text-slate-900'}`}>{inv.invited_email}</td>
                         <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-purple-500/10 text-purple-300 border border-purple-500/20">
+                          <span className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-sky-500/10 text-sky-600 dark:text-blue-400 border border-sky-500/20">
                             {roleDef.name}
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-slate-400">{inv.department}</td>
-                        <td className="py-3 px-4 font-mono text-[11px] text-cyan-400">
+                        <td className={`py-3 px-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{inv.department}</td>
+                        <td className="py-3 px-4 font-mono text-[11px] text-sky-600 dark:text-blue-400">
                           {inv.invite_token.slice(0, 16)}...
                         </td>
                         <td className="py-3 px-4">
                           {inv.is_used ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-100 dark:bg-white/[0.04] text-slate-500 border border-slate-200 dark:border-white/[0.08]">
                               Redeemed
                             </span>
                           ) : isExpired ? (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/30">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
                               Expired
                             </span>
                           ) : (
-                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30">
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-sky-500/10 text-sky-600 dark:text-blue-400 border border-sky-500/20">
                               Active &bull; 48h
                             </span>
                           )}
@@ -424,16 +470,20 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
                             <>
                               <button
                                 onClick={() => handleCopyLink(inviteUrl)}
-                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-all cursor-pointer text-[11px]"
+                                className={`inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg border transition-all cursor-pointer text-[11px] ${
+                                  isDark
+                                    ? 'bg-white/[0.04] text-slate-300 hover:text-white hover:bg-white/[0.08] border-white/[0.08]'
+                                    : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200 shadow-sm'
+                                }`}
                               >
-                                <Copy className="w-3 h-3" />
+                                <Copy className="w-3 h-3 text-sky-500 dark:text-blue-400" />
                                 <span>Copy Link</span>
                               </button>
                               <a
                                 href={inviteUrl}
                                 target="_blank"
                                 rel="noreferrer"
-                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-purple-600/80 text-white hover:bg-purple-600 transition-all cursor-pointer text-[11px]"
+                                className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-lg bg-gradient-to-r from-sky-400 to-blue-500 text-white hover:from-sky-500 hover:to-blue-600 transition-all cursor-pointer text-[11px] shadow-sm shadow-sky-500/20"
                               >
                                 <ExternalLink className="w-3 h-3" />
                                 <span>Simulate Open</span>
@@ -453,31 +503,35 @@ export function UserManagement({ initialTab = 'users', onNavigate }) {
 
       {/* Revocation Confirmation Modal */}
       {revokeUserTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-          <div className="bg-[#0B0F17] border border-red-500/40 rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4">
-            <div className="flex items-center space-x-3 text-red-400">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className={`border rounded-2xl max-w-md w-full p-6 shadow-2xl space-y-4 ${
+            isDark ? 'bg-[#0A0D14] border-red-500/40 text-white' : 'bg-white border-red-300 text-slate-900'
+          }`}>
+            <div className="flex items-center space-x-3 text-red-500">
               <ShieldAlert className="w-6 h-6 flex-shrink-0" />
-              <h3 className="text-base font-bold text-white">Revoke User Access</h3>
+              <h3 className="text-base font-bold">Revoke User Access</h3>
             </div>
-            <p className="text-xs text-slate-300 leading-relaxed">
+            <p className={`text-xs leading-relaxed ${isDark ? 'text-slate-300' : 'text-slate-600'}`}>
               Are you sure you want to revoke access for{' '}
-              <strong className="text-white">{revokeUserTarget.full_legal_name || revokeUserTarget.name}</strong> (
+              <strong className={isDark ? 'text-white' : 'text-slate-900'}>{revokeUserTarget.full_legal_name || revokeUserTarget.name}</strong> (
               {revokeUserTarget.email})?
             </p>
             <p className="text-[11px] text-slate-500">
-              In accordance with Query 13, user status will be marked <code>Revoked</code>. Historical jobs and uploaded candidate dossiers will remain strictly intact in the database.
+              User status will be marked <code>Revoked</code>. Historical jobs and uploaded candidate dossiers will remain strictly intact in the database.
             </p>
 
             <div className="flex items-center justify-end space-x-3 pt-2">
               <button
                 onClick={() => setRevokeUserTarget(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 text-xs font-semibold hover:bg-slate-700 transition-colors cursor-pointer"
+                className={`px-4 py-2 rounded-xl text-xs font-semibold transition-colors cursor-pointer ${
+                  isDark ? 'bg-white/[0.04] text-slate-300 hover:bg-white/[0.08]' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                }`}
               >
                 Cancel
               </button>
               <button
                 onClick={confirmRevoke}
-                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-500 transition-colors shadow-lg shadow-red-600/30 cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold hover:bg-red-700 transition-colors shadow-md shadow-red-600/30 cursor-pointer"
               >
                 Confirm Revocation
               </button>
